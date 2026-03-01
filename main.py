@@ -18,6 +18,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QUrl
 from PyQt5.QtGui import QFont, QColor, QPalette, QIcon, QDesktopServices
 import os
+import subprocess
+import platform
 
 from srt_parser import (parse_srt_file, compare_srt_files, create_thaisub_file,
                        save_srt_file, SubtitleEntry, fix_srt_entry)
@@ -1362,8 +1364,21 @@ class SRTCompareApp(QMainWindow):
             return
 
         file_path_str = str(self.file1_path.absolute())
-        if QDesktopServices.openUrl(QUrl.fromLocalFile(file_path_str)):
+        try:
+            system_name = platform.system().lower()
+            if system_name == "darwin":
+                subprocess.Popen(["open", file_path_str])
+            elif system_name == "windows":
+                os.startfile(file_path_str)
+            else:
+                subprocess.Popen(["xdg-open", file_path_str])
             self.log_message(f"📝 Đã mở File 1: {self.file1_path.name}")
+            return
+        except Exception:
+            pass
+
+        if QDesktopServices.openUrl(QUrl.fromLocalFile(file_path_str)):
+            self.log_message(f"📝 Đã mở File 1 (fallback Qt): {self.file1_path.name}")
         else:
             QMessageBox.critical(self, "Lỗi", "Không thể mở file bằng ứng dụng mặc định.")
             self.log_message(f"❌ Lỗi mở File 1: {self.file1_path.name}")
@@ -1381,8 +1396,21 @@ class SRTCompareApp(QMainWindow):
             return
 
         file_path_str = str(file_to_open.absolute())
-        if QDesktopServices.openUrl(QUrl.fromLocalFile(file_path_str)):
+        try:
+            system_name = platform.system().lower()
+            if system_name == "darwin":
+                subprocess.Popen(["open", file_path_str])
+            elif system_name == "windows":
+                os.startfile(file_path_str)
+            else:
+                subprocess.Popen(["xdg-open", file_path_str])
             self.log_message(f"📝 Đã mở file: {file_to_open.name}")
+            return
+        except Exception:
+            pass
+
+        if QDesktopServices.openUrl(QUrl.fromLocalFile(file_path_str)):
+            self.log_message(f"📝 Đã mở file (fallback Qt): {file_to_open.name}")
         else:
             QMessageBox.critical(self, "Lỗi", "Không thể mở file bằng ứng dụng mặc định.")
             self.log_message(f"❌ Lỗi mở file: {file_to_open.name}")
