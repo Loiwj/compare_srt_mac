@@ -1367,7 +1367,10 @@ class SRTCompareApp(QMainWindow):
         try:
             system_name = platform.system().lower()
             if system_name == "darwin":
-                subprocess.Popen(["open", file_path_str])
+                try:
+                    subprocess.Popen(["open", "-a", "TextEdit", file_path_str])
+                except Exception:
+                    subprocess.Popen(["open", file_path_str])
             elif system_name == "windows":
                 os.startfile(file_path_str)
             else:
@@ -1399,7 +1402,10 @@ class SRTCompareApp(QMainWindow):
         try:
             system_name = platform.system().lower()
             if system_name == "darwin":
-                subprocess.Popen(["open", file_path_str])
+                try:
+                    subprocess.Popen(["open", "-a", "TextEdit", file_path_str])
+                except Exception:
+                    subprocess.Popen(["open", file_path_str])
             elif system_name == "windows":
                 os.startfile(file_path_str)
             else:
