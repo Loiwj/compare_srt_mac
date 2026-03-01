@@ -1,0 +1,42 @@
+name: Build ReupTool for macOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build app (.app)
+        run: |
+          pyinstaller --clean --windowed --name ReupTool main.py
+
+      - name: Package ZIP + DMG
+        run: |
+          cd dist
+          zip -r ReupTool-macOS.zip ReupTool.app
+          hdiutil create -volname "ReupTool" -srcfolder ReupTool.app -ov -format UDZO ReupTool-macOS.dmg
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReupTool-macOS
+          path: |
+            dist/ReupTool-macOS.zip
+            dist/ReupTool-macOS.dmg
