@@ -1,4 +1,4 @@
-name: Build ReupTool for macOS
+name: Build ReupTool for macOS (Intel)
 
 on:
   workflow_dispatch:
@@ -6,8 +6,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  build-macos-intel:
+    runs-on: macos-13
 
     steps:
       - name: Checkout
@@ -25,18 +25,18 @@ jobs:
 
       - name: Build app (.app)
         run: |
-          pyinstaller --clean --windowed --name ReupTool main.py
+          pyinstaller --clean --windowed --target-arch x86_64 --name ReupTool main.py
 
       - name: Package ZIP + DMG
         run: |
           cd dist
-          zip -r ReupTool-macOS.zip ReupTool.app
-          hdiutil create -volname "ReupTool" -srcfolder ReupTool.app -ov -format UDZO ReupTool-macOS.dmg
+          zip -r ReupTool-macOS-intel.zip ReupTool.app
+          hdiutil create -volname "ReupTool" -srcfolder ReupTool.app -ov -format UDZO ReupTool-macOS-intel.dmg
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ReupTool-macOS
+          name: ReupTool-macOS-intel
           path: |
-            dist/ReupTool-macOS.zip
-            dist/ReupTool-macOS.dmg
+            dist/ReupTool-macOS-intel.zip
+            dist/ReupTool-macOS-intel.dmg
