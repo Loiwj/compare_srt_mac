@@ -1,38 +1,42 @@
-# Reup Tool
+# Video Bulk Downloader (Qt5 + yt-dlp)
 
-Ứng dụng so sánh và chỉnh sửa file phụ đề SRT với giao diện Qt5.
+Ứng dụng desktop GUI (PyQt5) để tải video từ nhiều nguồn (YouTube, TikTok, v.v.) bằng `yt-dlp`.
 
-## Tính năng chính
+## Tính năng
 
-- ✅ So sánh 2 file SRT để kiểm tra lệch thời gian
-- ✅ Tự động sửa lỗi lệch thời gian (đồng bộ từ file này sang file kia)
-- ✅ Tạo file thaisub từ file nguồn
-- ✅ Mở nhanh file SRT bằng ứng dụng mặc định của hệ điều hành
+- Tải **nhiều URL** cùng lúc (dán mỗi URL một dòng).
+- Mở rộng URL kênh/playlist thành danh sách video:
+  - YouTube channel/playlist
+  - TikTok profile/listing (nếu extractor hỗ trợ)
+- Hỗ trợ cookie từ trình duyệt (`--cookies-from-browser`):
+  - chrome, edge, firefox, brave, opera, chromium, safari
+- Chọn chế độ tải:
+  - Video tốt nhất + merge mp4
+  - Chỉ audio mp3
+- Giao diện Qt5 dễ dùng.
 
 ## Cài đặt
+
+1. Cài Python 3.10+.
+2. Mở terminal tại thư mục project.
+3. Cài dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Chạy trực tiếp
+## Chạy app
 
 ```bash
-python main.py
+python app.py
 ```
 
-## Build cho macOS
+## Ghi chú
 
-```bash
-chmod +x build_mac.sh
-./build_mac.sh
-```
+- Dự án đã clone `yt-dlp` vào thư mục con `./yt-dlp`.
+- App sẽ gọi trực tiếp `yt_dlp/__main__.py` từ repo clone.
+- Nếu video yêu cầu đăng nhập/độ tuổi/khu vực, hãy chọn cookie browser phù hợp.
 
-Output: `dist/ReupTool.app`
+## Cảnh báo pháp lý
 
-## Cấu trúc tối thiểu
-
-- `main.py`: file giao diện/chức năng chính
-- `srt_parser.py`: xử lý parse/so sánh/sửa SRT
-- `requirements.txt`: dependencies để chạy/build
-- `build_mac.sh`: script build cho macOS (PyInstaller)
+Hãy chỉ tải nội dung khi bạn có quyền theo điều khoản nền tảng và luật hiện hành.

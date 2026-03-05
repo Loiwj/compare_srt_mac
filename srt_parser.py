@@ -117,6 +117,7 @@ def compare_srt_files(file1: Path, file2: Path, tolerance_ms: int = 0) -> Dict:
         raise Exception(str(e))
     
     errors = []
+    per_entry_stats = []
     min_len = min(len(file1_entries), len(file2_entries))
     
     # So sánh từng entry
@@ -131,6 +132,7 @@ def compare_srt_files(file1: Path, file2: Path, tolerance_ms: int = 0) -> Dict:
         
         # Kiểm tra lệch thời gian bắt đầu
         start_diff = abs(entry1_start - entry2_start)
+        start_ok = start_diff <= tolerance_ms
         if start_diff > tolerance_ms:
             errors.append({
                 'type': 'start',
@@ -145,6 +147,7 @@ def compare_srt_files(file1: Path, file2: Path, tolerance_ms: int = 0) -> Dict:
         
         # Kiểm tra lệch thời gian kết thúc
         end_diff = abs(entry1_end - entry2_end)
+        end_ok = end_diff <= tolerance_ms
         if end_diff > tolerance_ms:
             errors.append({
                 'type': 'end',
@@ -156,13 +159,26 @@ def compare_srt_files(file1: Path, file2: Path, tolerance_ms: int = 0) -> Dict:
                 'diff_ms': end_diff,
                 'entry_index': i
             })
+
+        # Lưu thống kê từng entry để hiển thị chi tiết nếu cần
+        per_entry_stats.append({
+            'index': entry1.index,
+            'start_diff': start_diff,
+            'end_diff': end_diff,
+            'start_ok': start_ok,
+            'end_ok': end_ok,
+        })
     
+    # Số entry "đúng" được tính là entry mà cả start và end đều trong tolerance
+    correct_entries = sum(1 for s in per_entry_stats if s['start_ok'] and s['end_ok'])
+
     return {
         'errors': errors,
         'file1_entries': len(file1_entries),
         'file2_entries': len(file2_entries),
-        'matched': min_len - len(errors),
+        'matched': correct_entries,
         'total_compared': min_len,
+        'per_entry_stats': per_entry_stats,
         'file1_extra': file1_entries[min_len:] if len(file1_entries) > min_len else [],
         'file2_extra': file2_entries[min_len:] if len(file2_entries) > min_len else []
     }

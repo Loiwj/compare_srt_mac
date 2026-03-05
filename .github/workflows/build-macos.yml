@@ -1,4 +1,4 @@
-name: Build ReupTool for macOS (Intel)
+name: Build VideoDownloader for macOS (Intel)
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-macos-intel:
-    runs-on: macos-15-intel
+    runs-on: macos-13  # macos-13 là bản Intel, macos-15-intel đã deprecated
 
     steps:
       - name: Checkout
@@ -23,20 +23,51 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build app (.app)
+      - name: Download yt-dlp for macOS
         run: |
-          pyinstaller --clean --windowed --target-arch x86_64 --name ReupTool main.py
+          curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos -o yt-dlp
+          chmod +x yt-dlp
+          echo "Downloaded yt-dlp:"
+          ./yt-dlp --version
+
+      - name: Download FFmpeg for macOS
+        run: |
+          # Sử dụng bản ffmpeg từ evermeet.cx (Intel macOS)
+          curl -L https://evermeet.cx/ffmpeg/ffmpeg-6.1.1.zip -o ffmpeg.zip || \
+          curl -L https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-macos-x64 -o ffmpeg
+          
+          if [ -f "ffmpeg.zip" ]; then
+            unzip -j ffmpeg.zip -d .
+            rm -f ffmpeg.zip
+          fi
+          
+          chmod +x ffmpeg
+          echo "Downloaded FFmpeg:"
+          ./ffmpeg -version | head -1
+
+      - name: Build app (.app) with PyInstaller
+        run: |
+          pyinstaller \
+            --clean \
+            --windowed \
+            --target-arch x86_64 \
+            --name "VideoDownloader" \
+            --add-binary "ffmpeg:." \
+            --add-binary "yt-dlp:." \
+            --icon logo.ico \
+            app.py
 
       - name: Package ZIP + DMG
         run: |
           cd dist
-          zip -r ReupTool-macOS-intel.zip ReupTool.app
-          hdiutil create -volname "ReupTool" -srcfolder ReupTool.app -ov -format UDZO ReupTool-macOS-intel.dmg
+          zip -r VideoDownloader-macOS-intel.zip VideoDownloader.app
+          hdiutil create -volname "VideoDownloader" -srcfolder VideoDownloader.app -ov -format UDZO VideoDownloader-macOS-intel.dmg
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ReupTool-macOS-intel
+          name: VideoDownloader-macOS-intel
           path: |
-            dist/ReupTool-macOS-intel.zip
-            dist/ReupTool-macOS-intel.dmg
+            dist/VideoDownloader-macOS-intel.zip
+            dist/VideoDownloader-macOS-intel.dmg
+          retention-days: 30
