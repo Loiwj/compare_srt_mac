@@ -7,7 +7,8 @@ on:
 
 jobs:
   build-macos-intel:
-    runs-on: macos-13  # macos-13 là bản Intel, macos-15-intel đã deprecated
+    # macos-12 là Intel runner ổn định, macos-13/14 đôi khi khan hiếm
+    runs-on: macos-12
 
     steps:
       - name: Checkout
@@ -32,13 +33,14 @@ jobs:
 
       - name: Download FFmpeg for macOS
         run: |
-          # Sử dụng bản ffmpeg từ evermeet.cx (Intel macOS)
-          curl -L https://evermeet.cx/ffmpeg/ffmpeg-6.1.1.zip -o ffmpeg.zip || \
-          curl -L https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-macos-x64 -o ffmpeg
+          # Tải ffmpeg static cho macOS Intel từ source ổn định
+          curl -L https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-macos-x64 -o ffmpeg || \
+          curl -L https://evermeet.cx/ffmpeg/ffmpeg-6.1.1.7z -o ffmpeg.7z
           
-          if [ -f "ffmpeg.zip" ]; then
-            unzip -j ffmpeg.zip -d .
-            rm -f ffmpeg.zip
+          if [ -f "ffmpeg.7z" ]; then
+            brew install p7zip
+            7z e ffmpeg.7z -o.
+            rm -f ffmpeg.7z
           fi
           
           chmod +x ffmpeg
