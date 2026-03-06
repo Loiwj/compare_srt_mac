@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 from datetime import datetime
 from pathlib import Path
 
+# Thêm import top-level để PyInstaller dễ dàng phân tích và đóng gói module này
+import reup_tool_widget
 from PyQt5.QtCore import Qt, QSize, QThread, pyqtSignal, QSettings, QTimer
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import (
@@ -369,6 +371,22 @@ class VideoListViewDialog(QDialog):
                 chk.setCheckState(Qt.Unchecked)
 
 
+def _subprocess_env() -> dict:
+    """Loại bỏ các biến môi trường của PyInstaller để tránh xung đột khi gọi subprocess (đặc biệt là yt-dlp vốn là một PyInstaller app khác)."""
+    env = os.environ.copy()
+    
+    # Xoá các biến môi trường do PyInstaller mac/linux set
+    for key in ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH', 'LIBPATH', 'LIBRARY_PATH']:
+        if key in env:
+            env.pop(key)
+            
+    # Xoá các biến môi trường PyInstaller set cho executable hiện tại
+    for env_var in list(env.keys()):
+        if str(env_var).startswith('_MEI'):
+            env.pop(env_var)
+            
+    return env
+
 class ExpandWorker(QThread):
     log = pyqtSignal(str)
     result = pyqtSignal(list)
@@ -456,6 +474,7 @@ class ExpandWorker(QThread):
                 text=True,
                 encoding="utf-8",
                 errors="replace",
+                env=_subprocess_env(),
                 **_subprocess_no_console_kwargs(),
             )
             if proc.returncode == 0 and proc.stdout.strip():
@@ -924,6 +943,7 @@ class DownloadWorker(QThread):
                     text=True,
                     encoding="utf-8",
                     errors="replace",
+                    env=_subprocess_env(),
                     **_subprocess_no_console_kwargs(),
                 )
 
@@ -1071,6 +1091,7 @@ class MergeWorker(QThread):
                 text=True,
                 encoding="utf-8",
                 errors="replace",
+                env=_subprocess_env(),
                 **_subprocess_no_console_kwargs(),
             )
             
@@ -1374,7 +1395,7 @@ class MainWindow(QWidget):
 
         # 3. Thử chạy lệnh trực tiếp (fallback)
         try:
-            subprocess.run(["ffmpeg", "-version"], capture_output=True, **_subprocess_no_console_kwargs())
+            subprocess.run(["ffmpeg", "-version"], capture_output=True, env=_subprocess_env(), **_subprocess_no_console_kwargs())
             self.ffmpeg_path = "ffmpeg"
             self.append_log("✅ FFmpeg tìm thấy qua lệnh trực tiếp")
             return

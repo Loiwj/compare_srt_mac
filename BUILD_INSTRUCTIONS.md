@@ -33,6 +33,8 @@
      --windowed \
      --name "VideoDownloader" \
      --hidden-import "reup_tool_widget" \
+     --hidden-import "srt_parser" \
+     --hidden-import "capcut_srt_gui" \
      --icon "logo.png" \
      --add-data "logo.png:." \
      --add-data "logo.ico:." \
