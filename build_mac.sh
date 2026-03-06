@@ -55,8 +55,12 @@ python -m PyInstaller \
   --clean \
   --windowed \
   --name "VideoDownloader" \
+  --hidden-import "reup_tool_widget" \
+  --icon "logo.png" \
+  --add-data "logo.png:." \
+  --add-data "logo.ico:." \
   --add-binary "ffmpeg:." \
-  --add-binary "yt-dlp:." \
+  --add-data "yt-dlp:." \
   app.py
 
 echo
