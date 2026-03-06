@@ -7,7 +7,6 @@ on:
 
 jobs:
   build-macos-intel:
-    # macos-12 là Intel runner ổn định, macos-13/14 đôi khi khan hiếm
     runs-on: macos-15-intel
 
     steps:
@@ -31,12 +30,13 @@ jobs:
           echo "Downloaded yt-dlp:"
           ./yt-dlp --version
 
-      - name: Download FFmpeg for macOS
+      - name: Install FFmpeg via Homebrew
         run: |
-          curl -L https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-macos-x64 -o ffmpeg
-          chmod +x ffmpeg
-          echo "Downloaded FFmpeg:"
-          ./ffmpeg -version | head -1
+          brew install ffmpeg
+          echo "Installed FFmpeg:"
+          ffmpeg -version | head -1
+          # Copy ffmpeg binary vào thư mục build
+          cp $(which ffmpeg) ./ffmpeg
 
       - name: Build app (.app)
         run: |
