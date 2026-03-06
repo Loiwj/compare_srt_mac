@@ -9,8 +9,6 @@ from urllib.parse import urlparse
 from datetime import datetime
 from pathlib import Path
 
-# Thêm import top-level để PyInstaller dễ dàng phân tích và đóng gói module này
-import reup_tool_widget
 from PyQt5.QtCore import Qt, QSize, QThread, pyqtSignal, QSettings, QTimer
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import (
