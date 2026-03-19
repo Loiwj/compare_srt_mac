@@ -160,6 +160,19 @@ def compare_srt_files(file1: Path, file2: Path, tolerance_ms: int = 0) -> Dict:
                 'entry_index': i
             })
 
+        # Kiểm tra lệch số lượng dòng text (lines_mismatch)
+        if len(entry1.content) != len(entry2.content):
+            errors.append({
+                'type': 'lines_mismatch',
+                'index': entry1.index,
+                'file1_line': entry1.line_number,
+                'file2_line': entry2.line_number,
+                'file1_time': entry1.start_time,
+                'file2_time': entry2.start_time,
+                'diff_ms': 0,
+                'entry_index': i
+            })
+
         # Lưu thống kê từng entry để hiển thị chi tiết nếu cần
         per_entry_stats.append({
             'index': entry1.index,
@@ -259,3 +272,4 @@ def fix_srt_entry(entries: List[SubtitleEntry], entry_index: int,
         entry.content = new_content
     
     return True
+

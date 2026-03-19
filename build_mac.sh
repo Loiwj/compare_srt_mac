@@ -1,71 +1,96 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -e
 
-# Script build cho macOS (Intel/Apple Silicon) cho tool_dowload_video
-# - Tự tạo venv
-# - Tự tải ffmpeg cho macOS
-# - Chuẩn bị yt-dlp (dùng file yt-dlp_macos nếu có)
-# - Đóng gói bằng PyInstaller vào dạng .app
+echo "========================================"
+echo "  Building Video Downloader for macOS"
+echo "========================================"
+echo ""
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
-echo "==> Tạo virtualenv và cài thư viện..."
-python3 -m venv .venv
-source .venv/bin/activate
+echo "[1/4] Cleaning old build files..."
+rm -rf build dist
+echo "Done."
+echo ""
 
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-
-echo "==> Chuẩn bị yt-dlp cho macOS..."
-# Nếu đã có file yt-dlp_macos trong repo thì copy sang yt-dlp
-if [ -f "yt-dlp_macos" ]; then
-  cp "yt-dlp_macos" "yt-dlp"
-  chmod +x "yt-dlp" || true
-  echo "   - Đã copy yt-dlp_macos -> yt-dlp"
-else
-  # Nếu không có, thử tải bản mới nhất từ GitHub (macOS binary)
-  echo "   - Không tìm thấy yt-dlp_macos, thử tải từ GitHub..."
-  curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos -o yt-dlp
-  chmod +x "yt-dlp"
-  echo "   - Đã tải yt-dlp (macOS) về file ./yt-dlp"
+echo "[2/4] Preparing icon..."
+if [ -f "logo.png" ]; then
+    echo "  - Creating logo.icns from logo.png..."
+    # Tạo iconset directory
+    ICONSET_DIR="logo.iconset"
+    mkdir -p "$ICONSET_DIR"
+    
+    # Kiểm tra xem sips có sẵn không (macOS built-in)
+    if command -v sips &> /dev/null; then
+        sips -z 16 16     logo.png --out "$ICONSET_DIR/icon_16x16.png"      2>/dev/null || true
+        sips -z 32 32     logo.png --out "$ICONSET_DIR/icon_16x16@2x.png"   2>/dev/null || true
+        sips -z 32 32     logo.png --out "$ICONSET_DIR/icon_32x32.png"      2>/dev/null || true
+        sips -z 64 64     logo.png --out "$ICONSET_DIR/icon_32x32@2x.png"   2>/dev/null || true
+        sips -z 128 128   logo.png --out "$ICONSET_DIR/icon_128x128.png"    2>/dev/null || true
+        sips -z 256 256   logo.png --out "$ICONSET_DIR/icon_128x128@2x.png" 2>/dev/null || true
+        sips -z 256 256   logo.png --out "$ICONSET_DIR/icon_256x256.png"    2>/dev/null || true
+        sips -z 512 512   logo.png --out "$ICONSET_DIR/icon_256x256@2x.png" 2>/dev/null || true
+        sips -z 512 512   logo.png --out "$ICONSET_DIR/icon_512x512.png"    2>/dev/null || true
+        sips -z 1024 1024 logo.png --out "$ICONSET_DIR/icon_512x512@2x.png" 2>/dev/null || true
+        
+        iconutil -c icns "$ICONSET_DIR" -o logo.icns 2>/dev/null || true
+    else
+        echo "  - sips not available, trying Python Pillow..."
+        python3 -c "
+from PIL import Image
+import pathlib
+p = pathlib.Path('logo.png')
+im = Image.open(p)
+im.save('logo.icns', sizes=[(256,256),(128,128),(64,64),(32,32),(16,16)])
+" 2>/dev/null || echo "  - Warning: Could not create .icns icon"
+    fi
+    
+    rm -rf "$ICONSET_DIR"
+    echo "  - Icon ready."
 fi
+echo "Done."
+echo ""
 
-echo "==> Tải ffmpeg cho macOS..."
-# Chọn một bản ffmpeg static phổ biến cho macOS.
-# Ở đây dùng bản từ evermeet.cx (thường dùng trong cộng đồng).
-FFMPEG_URL="https://evermeet.cx/ffmpeg/ffmpeg-6.1.1.zip"
-TMP_ZIP="$(mktemp /tmp/ffmpeg-macos-XXXXXX.zip)"
+echo "[3/4] Building application with PyInstaller..."
+pyinstaller build_mac.spec --clean
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "ERROR: Build failed!"
+    exit 1
+fi
+echo "Done."
+echo ""
 
-curl -L "$FFMPEG_URL" -o "$TMP_ZIP"
-
-echo "   - Giải nén ffmpeg..."
-unzip -j "$TMP_ZIP" -d .
-rm -f "$TMP_ZIP"
-
+echo "[4/4] Copying required files to dist folder..."
 if [ -f "ffmpeg" ]; then
-  chmod +x "ffmpeg" || true
-  echo "   - Đã chuẩn bị ffmpeg tại: $(pwd)/ffmpeg"
-else
-  echo "!!! Không tìm thấy file 'ffmpeg' sau khi giải nén."
-  echo "    Vui lòng kiểm tra lại URL hoặc tự tải ffmpeg cho macOS và đặt file 'ffmpeg' cạnh app.py."
+    cp -f "ffmpeg" "dist/"
+    chmod +x "dist/ffmpeg"
+    echo "  - ffmpeg copied"
 fi
+if [ -f "yt-dlp" ]; then
+    cp -f "yt-dlp" "dist/"
+    chmod +x "dist/yt-dlp"
+    echo "  - yt-dlp copied"
+fi
+# libmpv dylib - tìm cả .dylib và .2.dylib
+for lib in libmpv.dylib libmpv.2.dylib; do
+    if [ -f "$lib" ]; then
+        cp -f "$lib" "dist/"
+        echo "  - $lib copied"
+    fi
+done
+if [ -f "logo.png" ]; then
+    cp -f "logo.png" "dist/"
+    echo "  - logo.png copied"
+fi
+echo ""
 
-echo "==> Đóng gói ứng dụng với PyInstaller..."
-python -m PyInstaller \
-  --clean \
-  --windowed \
-  --name "VideoDownloader" \
-  --hidden-import "reup_tool_widget" \
-  --hidden-import "srt_parser" \
-  --hidden-import "capcut_srt_gui" \
-  --icon "logo.png" \
-  --add-data "logo.png:." \
-  --add-data "logo.ico:." \
-  --add-binary "ffmpeg:." \
-  --add-data "yt-dlp:." \
-  app.py
-
-echo
-echo "✅ Build xong: dist/VideoDownloader.app"
-echo "   - ffmpeg và yt-dlp đã được nhúng vào bundle (thư mục .app)"
-
+echo "========================================"
+echo "  Build completed successfully!"
+echo "========================================"
+echo ""
+echo "Output location: $SCRIPT_DIR/dist/VideoDownloader.app"
+echo ""
+echo "You can now distribute the 'dist' folder or the .app bundle."
+echo ""

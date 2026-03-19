@@ -1,79 +1,18 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
+dist/
+build/
 
-# Virtual environments
-venv/
-.venv/
-env/
-ENV/
-env.bak/
-venv.bak/
+# Runtime & cache
+.runtime/
+.thumb_cache/
 
-# PyInstaller
-*.spec
-*.manifest
+# Logs
 *.log
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Project specific - Temporary and cache files
-.runtime/
-.thumb_cache/
-*.archive
-downloaded.archive
-
-# Private data - DO NOT COMMIT
-cookie_profiles.json
-cookies_bilibili_debug.json
-*.cookies.json
-
-# yt-dlp (if cloned as submodule, use git submodule instead)
-# Keep yt-dlp/ directory but not its content if manually downloaded
-# Uncomment below if yt-dlp is not a git submodule
-# yt-dlp/
-
-# FFmpeg binaries (platform specific, download during build)
-ffmpeg
-ffmpeg.exe
-yt-dlp_binary
-yt-dlp.exe
-yt-dlp_macos
-
-# Output directories
-output/
-downloads/
