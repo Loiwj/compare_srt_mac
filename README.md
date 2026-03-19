@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 <img src="logo.png" alt="Logo" width="100">
 
@@ -165,4 +165,4 @@ Hãy chỉ tải nội dung khi bạn có quyền theo điều khoản của n�
 Made with ❤️ by [Loiwj](https://github.com/Loiwj)
 
 </div>
-]]>
+
